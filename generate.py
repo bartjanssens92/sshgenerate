@@ -7,7 +7,7 @@ import sys
 
 CONFIGFILE_NAME = 'config.yaml'
 SSHCONFIGFILE_LOCATION = './generated_ssh_config'
-DEBUG = True
+DEBUG = False
 
 ### GENERAL FUNCTIONS ###
 
@@ -27,6 +27,11 @@ def error (msg):
 
 ### FUNCTIONS ###
 
+def default_settingshash():
+    default_hash = {
+            'proxycommand': 'ssh proxyhost -W %h:%p',
+            }
+
 def translate_key(key):
     """
     Function to return the correct configuration key.
@@ -39,6 +44,7 @@ def translate_key(key):
             'proxycommand': 'ProxyCommand',
             'ip': 'Hostname',
             'hostname': 'Hostname',
+            'port': 'Port',
             }
     if key in mapping:
         return str(mapping[key])
@@ -72,6 +78,11 @@ def generate_confighash(settingshash, confighash):
         else:
             fqdn = str(host) + '.' + str(defaults['domain'])
 
+        if 'proxycommand' in defaults:
+            proxycommand = defaults['proxycommand']
+        else:
+            proxycommand = settingshash['proxycommand']
+
         if 'host' in confighash['hosts'][host]:
             hostname = confighash['hosts'][host]['host']
             configblock[hostname] = {}
@@ -83,18 +94,18 @@ def generate_confighash(settingshash, confighash):
 
         for key in confighash['hosts'][host]:
             # Skip not valid configuration functions
-            if key in ['host']:
+            if key in ['host','domain']:
                 continue
             if key == 'proxyhost':
                 proxyhost = str(confighash['hosts'][host][key]) + '.' + str(defaults['domain'])
-                configblock[hostname]['ProxyCommand'] = settingshash['proxycommand'].replace('proxyhost',proxyhost)
+                configblock[hostname]['ProxyCommand'] = proxycommand.replace('proxyhost',proxyhost)
             else:
                 if not confighash['hosts'][host][key] == '':
                     configblock[hostname][translate_key(key)] = str(confighash['hosts'][host][key])
 
         for key in defaults:
             # Skip not valid configuration functions
-            if key in ['domain']:
+            if key in ['domain','proxycommand']:
                 continue
             # Skip already included keys
             elif translate_key(key) in configblock[hostname]:
@@ -156,7 +167,12 @@ def generate_config():
     Function to generate the configuration.
     """
     CONFIG = read_configfile(CONFIGFILE_NAME)
-    settingshash = CONFIG['settings']
+
+    if not 'settings' in CONFIG:
+        settingshash = default_settingshash()
+    else:
+        settingshash = CONFIG['settings']
+
     for SECTION in CONFIG:
         if SECTION == 'settings':
             continue

@@ -1,0 +1,31 @@
+---
+settings:
+  proxycommand: 'ssh proxyhost -W %h:%p'
+
+customer-internal:
+  default:
+    domain: internal.customer.com
+    user: myname_customer
+    identityfile: id_rsa_customer
+  hosts:
+    proxy:
+      ip: 1.2.3.4
+    foreman: {}
+    jenkins:
+      hostname: jenkins7
+      User: myname_customer_again
+    docker:
+      proxyhost: proxy
+
+customer-development:
+  default:
+    domain: dev
+    proxycommand: 'bash -c "exec ssh proxyhost -W $(basename -s.dev %h).development.customer.be:%p"'
+  hosts:
+    'proxy':
+      host: proxy
+      domain: somewhere.over.the.rainbow
+      user: another_user
+      port: 443
+    '*':
+      proxyhost: proxy
