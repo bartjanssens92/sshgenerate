@@ -6,7 +6,6 @@ import sys
 ### SETTINGS ###
 
 CONFIGFILE_NAME = 'config.yaml'
-SSHCONFIGFILE_LOCATION = './generated_ssh_config'
 DEBUG = False
 
 ### GENERAL FUNCTIONS ###
@@ -30,7 +29,11 @@ def error (msg):
 def default_settingshash():
     default_hash = {
             'proxycommand': 'ssh proxyhost -W %h:%p',
+            'debug': False,
+            'sshconfigfile': 'config_generated',
             }
+
+    return default_hash
 
 def translate_key(key):
     """
@@ -56,7 +59,6 @@ def read_configfile(configfile):
     Function to read the configfile.
     Returns a hash.
     """
-    debug( 'Reading: ' + configfile )
     with open(configfile, 'r') as stream:
         try:
             confighash = yaml.safe_load(stream)
@@ -166,12 +168,20 @@ def generate_config():
     """
     Function to generate the configuration.
     """
+    global DEBUG
+
     CONFIG = read_configfile(CONFIGFILE_NAME)
 
     if not 'settings' in CONFIG:
         settingshash = default_settingshash()
     else:
-        settingshash = CONFIG['settings']
+        settingshashf = CONFIG['settings']
+        settingshashd = default_settingshash()
+        settingshash = { **settingshashd, **settingshashf }
+
+    SSHCONFIGFILE_LOCATION = settingshash['sshconfigfile']
+    DEBUG = settingshash['debug']
+    debug( 'Debugging enabled' )
 
     for SECTION in CONFIG:
         if SECTION == 'settings':
