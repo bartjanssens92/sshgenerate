@@ -18,12 +18,10 @@ Some parameters are set inside the script:
 ### SETTINGS ###
 
 CONFIGFILE_NAME = 'config.yaml'
-SSHCONFIGFILE_LOCATION = './generated_ssh_config'
 DEBUG = True
 ```
 
 The configfile_name parameter sets where to find the configuration yaml file.
-Sshconfigfile_location sets where to write / append the generated configuration.
 Debug enables debugging
 
 ### Configfile
@@ -38,6 +36,8 @@ This is a bit special as it replaces the proxyhost string with the supplied on i
 ```
 settings:
   proxycommand: 'ssh proxyhost -W %h:%p
+  debug: False
+  sshconfigfile: '/home/username/.ssh/config_test'
 ```
 
 #### Section
